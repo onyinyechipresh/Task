@@ -6,6 +6,7 @@ public class Validate {
             errorMessages.append(", ");
         }
         errorMessages.append(message);
+
     }
 
     boolean isValid() {
