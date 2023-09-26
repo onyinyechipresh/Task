@@ -26,9 +26,9 @@ public class User {
 
         // todo:Check if all validations passed
         if (result.isValid()) {
-            System.out.println("Registration Successful!");
+            System.out.println("true");
         } else {
-            System.out.println("Registration Failed. Validation Errors:");
+            System.out.println("false");
             System.out.println(result.getErrorMessages());
         }
 
