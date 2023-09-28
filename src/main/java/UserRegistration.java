@@ -3,7 +3,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Scanner;
 import java.util.regex.Pattern;
 
-public class User {
+public class UserRegistration {
     public static void main(String[] args) {
         // todo: Input for Username, Email, Password, and Date of Birth
         Scanner scanner = new Scanner(System.in);

@@ -1,15 +1,18 @@
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.security.Key;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
+
 
 public class JwtValidation {
     public static void main(String[] args) {
@@ -28,13 +31,14 @@ public class JwtValidation {
         String dateOfBirth = scanner.nextLine();
         LocalDateTime dob = parseDateOfBirth(dateOfBirth);
 
+
         // todo:Validate all fields concurrently
         CompletableFuture<Validate> usernameValidation = CompletableFuture.supplyAsync(() -> isValidUsername(username));
         CompletableFuture<Validate> emailValidation = CompletableFuture.supplyAsync(() -> isValidEmail(email));
         CompletableFuture<Validate> passwordValidation = CompletableFuture.supplyAsync(() -> isValidPassword(password));
         CompletableFuture<Validate> dobValidation = CompletableFuture.supplyAsync(() -> isValidDOB(String.valueOf(dob)));
 
-        try{
+        try {
             // todo:Combine the results and check if all validations passed
             boolean isValid = usernameValidation.get().isValid()
                     && emailValidation.get().isValid()
@@ -61,7 +65,7 @@ public class JwtValidation {
                 }
             }
 
-    }catch (InterruptedException | ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         scanner.close();
@@ -122,7 +126,6 @@ public class JwtValidation {
         return res;
     }
 
-
     public static LocalDateTime parseDateOfBirth(String dobString) {
         try {
             return LocalDateTime.parse(dobString + "T00:00:00");
@@ -132,15 +135,42 @@ public class JwtValidation {
     }
 
     // todo:Generate a JWT token
-    private static String generateJWT(String email) {
-        Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    public static String generateJWT(String email) {
+        Key keyForJwt = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+//        System.out.println(key);
+        saveKeyToFile(keyForJwt);
         long currentTimeMillis = System.currentTimeMillis();
-        Date expiration = new Date(currentTimeMillis + 3600_000);
+        Date expiration = new Date(currentTimeMillis + 30_000);
 
-        return Jwts.builder()
+        String jwt = io.jsonwebtoken.Jwts.builder()
                 .setSubject(email)
                 .setExpiration(expiration)
-                .signWith(key)
+                .signWith(keyForJwt)
                 .compact();
+
+        saveJWTToFile(jwt);
+
+        return jwt;
+    }
+
+    private static void saveJWTToFile(String jwt) {
+        try {
+            FileWriter fileWriter = new FileWriter("jwt_token.txt");
+            fileWriter.write(jwt);
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void saveKeyToFile(Key key) {
+        try {
+            FileWriter fileWriter = new FileWriter("key_token.txt");
+            String secretKeyString = Base64.getEncoder().encodeToString(key.getEncoded());
+            fileWriter.write(secretKeyString);
+            fileWriter.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
