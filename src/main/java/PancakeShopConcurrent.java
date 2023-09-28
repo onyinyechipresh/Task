@@ -15,43 +15,43 @@ public class PancakeShopConcurrent {
             System.out.println("Starting time of 30-second slot: " + i * 30 + " seconds");
             System.out.println("Ending time of 30-second slot: " + (i + 1) * 30 + " seconds");
 
-            CompletableFuture<Integer> user1Future = CompletableFuture.supplyAsync(() -> {
-                int userOrder1 = random.nextInt(6); // User 1 can order up to 5 pancakes
-                return Math.min(userOrder1, 5); // Limit order to 5 pancakes
+            CompletableFuture<Integer> user1 = CompletableFuture.supplyAsync(() -> {
+                int userOrder1 = random.nextInt(6);
+                return Math.min(userOrder1, 5);
             });
 
-            CompletableFuture<Integer> user2Future = CompletableFuture.supplyAsync(() -> {
-                int userOrder2 = random.nextInt(6); // User 2 can order up to 5 pancakes
-                return Math.min(userOrder2, 5); // Limit order to 5 pancakes
+            CompletableFuture<Integer> user2 = CompletableFuture.supplyAsync(() -> {
+                int userOrder2 = random.nextInt(6);
+                return Math.min(userOrder2, 5);
             });
 
-            CompletableFuture<Integer> user3Future = CompletableFuture.supplyAsync(() -> {
-                int userOrder3 = random.nextInt(6); // User 3 can order up to 5 pancakes
-                return Math.min(userOrder3, 5); // Limit order to 5 pancakes
+            CompletableFuture<Integer> user3 = CompletableFuture.supplyAsync(() -> {
+                int userOrder3 = random.nextInt(6);
+                return Math.min(userOrder3, 5);
             });
 
-            CompletableFuture<Void> allOf = CompletableFuture.allOf(user1Future, user2Future, user3Future);
+            CompletableFuture<Void> allOf = CompletableFuture.allOf(user1, user2, user3);
 
             allOf.thenRun(() -> {
-                int user1Order = user1Future.join();
-                int user2Order = user2Future.join();
-                int user3Order = user3Future.join();
+                int userOrder1 = user1.join();
+                int userOrder2 = user2.join();
+                int userOrder3 = user3.join();
 
                 System.out.println("Shopkeeper making " + pancakesToMake + " pancakes.");
 
-                if (user1Order + user2Order + user3Order <= pancakesToMake) {
-                    int totalOrdered = user1Order + user2Order + user3Order;
+                if (userOrder1 + userOrder2 + userOrder3 <= pancakesToMake) {
+                    int totalOrdered = userOrder1 + userOrder2 + userOrder3;
                     System.out.println("All users' orders met.");
                     System.out.println("Users ordered: " + totalOrdered + " pancakes.");
-                    totalEaten.addAndGet(totalOrdered);
-                    totalWasted.addAndGet(pancakesToMake - totalOrdered);
+                    totalEaten.getAndSet(totalOrdered);
+                    totalWasted.getAndSet(pancakesToMake - totalOrdered);
                 } else {
                     System.out.println("Shopkeeper could not meet all orders.");
-                    int totalOrdered = pancakesToMake;
+                    int totalOrdered = userOrder1 + userOrder2 + userOrder3;
                     System.out.println("Users ordered: " + totalOrdered + " pancakes.");
-                    totalEaten.addAndGet(totalOrdered);
-                    totalWasted.addAndGet(0);
-                    unmetOrders.addAndGet((user1Order + user2Order + user3Order) - pancakesToMake);
+                    totalEaten.getAndSet(pancakesToMake);
+                    totalWasted.getAndSet(0);
+                    unmetOrders.getAndSet((userOrder1 + userOrder2 + userOrder3) - pancakesToMake);
                     System.out.println(unmetOrders + " pancake orders were not met.");
                 }
 
